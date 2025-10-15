@@ -1,0 +1,46 @@
+name: Translate with Gemini AI
+
+on:
+  workflow_dispatch:
+    inputs:
+      bato_url:
+        description: 'Bato.to chapter URL'
+        required: true
+        type: string
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
+        sudo apt-get install -y chromium-chromedriver
+        sudo apt-get install -y fonts-noto-devanagari
+    
+    - name: Install Python dependencies
+      run: |
+        pip install -r requirements.txt
+    
+    - name: Run Gemini-powered translation
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        BATO_URL: ${{ github.event.inputs.bato_url }}
+      run: |
+        echo "$BATO_URL" | python pipeline.py
+    
+    - name: Upload translated pages
+      uses: actions/upload-artifact@v3
+      with:
+        name: marathi-pages-gemini
+        path: marathi_pages/marathi_*.jpg
+        retention-days: 30
