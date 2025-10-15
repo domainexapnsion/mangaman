@@ -1,4 +1,4 @@
-name: Translate with Gemini AI
+name: Translate Bato.to to Marathi
 
 on:
   workflow_dispatch:
@@ -13,34 +13,34 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
+        python-version: '3.11'
     
-    - name: Install system dependencies
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install pillow opencv-python requests numpy google-generativeai
+    
+    - name: Install fonts
       run: |
         sudo apt-get update
-        sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
-        sudo apt-get install -y chromium-chromedriver
-        sudo apt-get install -y fonts-noto-devanagari
+        sudo apt-get install -y fonts-noto-devanagari fonts-noto-devanagari-extra
     
-    - name: Install Python dependencies
-      run: |
-        pip install -r requirements.txt
-    
-    - name: Run Gemini-powered translation
+    - name: Run translation pipeline
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         BATO_URL: ${{ github.event.inputs.bato_url }}
       run: |
-        echo "$BATO_URL" | python pipeline.py
+        python pipeline.py "$BATO_URL"
     
     - name: Upload translated pages
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: marathi-pages-gemini
-        path: marathi_pages/marathi_*.jpg
+        name: marathi-translated-chapter
+        path: translated_chapters/
         retention-days: 30
+        compression-level: 6
